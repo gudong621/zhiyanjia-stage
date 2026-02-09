@@ -2,20 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import { AppShell } from "../../components/AppShell";
-import { Brain, Search, PenTool, Share2, ShieldAlert, UserCheck, Play, Pause, Filter, Zap, LayoutGrid, Monitor } from "lucide-react";
+import { Brain, Search, PenTool, Share2, ShieldAlert, UserCheck, Zap, LayoutGrid, Monitor } from "lucide-react";
 import { VirtualOffice } from "../../components/VirtualOffice";
-
-interface Agent {
-  id: string;
-  name: string;
-  role: string;
-  model: string;
-  status: string;
-  affect: string;
-  lastAction: string;
-  icon: React.ReactNode;
-  color: string;
-}
 
 const AGENT_META: Record<string, any> = {
   minion: { icon: <UserCheck size={20} />, color: "bg-purple-900" },
@@ -96,12 +84,6 @@ export default function StagePage() {
                     <LayoutGrid size={14} /> AGENT_GRID
                 </button>
             </div>
-            <button 
-              onClick={() => setIsPlaying(!isPlaying)}
-              className="px-4 py-2 bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-[10px] font-black hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all uppercase"
-            >
-              {isPlaying ? "PAUSE" : "RESUME"}
-            </button>
           </div>
         </header>
 
@@ -112,7 +94,7 @@ export default function StagePage() {
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSendMission()}
-              placeholder="输入作战代号或产品指令... (例如：针对《交子行天下》进行全案深度策划)"
+              placeholder="输入指令，看 Agent 们如何在办公室里开始讨论..."
               className="flex-1 bg-black border-2 border-accent p-3 text-accent font-bold text-sm focus:outline-none pixel-ch-text placeholder:opacity-50"
             />
             <button 
@@ -132,7 +114,7 @@ export default function StagePage() {
 
         {viewMode === 'office' ? (
             <div className="mb-12">
-                <VirtualOffice agents={data.agents || []} />
+                <VirtualOffice agents={data.agents || []} events={data.events || []} />
             </div>
         ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-10">
