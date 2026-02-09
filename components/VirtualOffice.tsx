@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useRef, useMemo } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { 
   UserCheck, Brain, Search, PenTool, Share2, ShieldAlert, 
   Monitor, Coffee, Server, Globe, Layout, Shield, Cpu, 
@@ -34,52 +34,41 @@ export const VirtualOffice: React.FC<{ agents: any[], events: any[] }> = ({ agen
     { id: 'tachi-2', x: 70, y: 70, state: 'Natural Oil!' }
   ]);
   
-  const positionsRef = useRef<Record<string, { x: number, y: number }>>({});
+  const lastEvent = events[events.length - 1];
+  const speakerId = agents.find(a => a.name === lastEvent?.agent)?.id;
 
-  // 1. Logic: Target Determination
   useEffect(() => {
     if (agents.length === 0) return;
-
-    const lastEvent = events[events.length - 1];
     
     setPositions(prev => {
       const next = { ...prev };
-      
       agents.forEach(agent => {
-        // Initial setup
         if (!next[agent.id]) {
             const homeFurn = FURNITURE.find(f => f.id === AGENT_DATA[agent.id]?.home) || FURNITURE[0];
             next[agent.id] = { x: homeFurn.x, y: homeFurn.y };
             return;
         }
-
         const isSpeaking = lastEvent && lastEvent.agent === agent.name;
         const isThinking = agent.status === 'thinking' || agent.status === 'syncing';
 
         if (isSpeaking) {
-            // Rule: If speaking, move towards the center/meeting table
             next[agent.id] = { x: 45 + (Math.random() * 4 - 2), y: 40 + (Math.random() * 4 - 2) };
         } else if (isThinking) {
-            // Rule: If thinking, stay at home equipment
             const home = FURNITURE.find(f => f.id === AGENT_DATA[agent.id]?.home);
             if (home) next[agent.id] = { x: home.x + 2, y: home.y + 2 };
         } else {
-            // Rule: Occasionally roam to oil bar or idle
             if (Math.random() > 0.8) {
                 const randomFurn = Math.random() > 0.7 ? FURNITURE.find(f => f.id === 'f3') : FURNITURE[Math.floor(Math.random() * FURNITURE.length)];
                 if (randomFurn) next[agent.id] = { x: randomFurn.x + (Math.random() * 6 - 3), y: randomFurn.y + (Math.random() * 6 - 3) };
             }
         }
       });
-
       return next;
     });
 
-    // Tachikomas follow speakers or roam oil bar
     setTachikomas(prev => prev.map(t => {
         if (lastEvent && Math.random() > 0.5) {
-            // Follow the current speaker!
-            const speakerPos = positions[agents.find(a => a.name === lastEvent.agent)?.id || ""];
+            const speakerPos = positions[speakerId || ""];
             if (speakerPos) return { ...t, x: speakerPos.x + 5, y: speakerPos.y + 5, state: 'Watching!' };
         }
         return {
@@ -89,7 +78,6 @@ export const VirtualOffice: React.FC<{ agents: any[], events: any[] }> = ({ agen
             state: Math.random() > 0.9 ? 'Oil Time!' : t.state
         };
     }));
-
   }, [agents, events]);
 
   return (
@@ -100,7 +88,7 @@ export const VirtualOffice: React.FC<{ agents: any[], events: any[] }> = ({ agen
       {FURNITURE.map(item => (
         <div 
           key={item.id}
-          className="absolute flex flex-col items-center justify-center opacity-30 group cursor-help transition-opacity hover:opacity-100"
+          className="absolute flex flex-col items-center justify-center opacity-30 group"
           style={{ left: `${item.x}%`, top: `${item.y}%`, transform: 'translate(-50%, -50%)' }}
         >
           <div className={`p-4 border-2 border-dashed border-white/10 rounded-lg bg-black/20 ${item.color} shadow-inner`}>
@@ -111,6 +99,29 @@ export const VirtualOffice: React.FC<{ agents: any[], events: any[] }> = ({ agen
           </div>
         </div>
       ))}
+
+      {/* Dynamic Connection Lines */}
+      {speakerId && positions[speakerId] && (
+        <svg className="absolute inset-0 w-full h-full pointer-events-none z-10">
+          {agents.map(a => {
+            if (a.id === speakerId) return null;
+            const start = positions[speakerId];
+            const end = positions[a.id];
+            if (!start || !end) return null;
+            return (
+              <line 
+                key={`line-${a.id}`}
+                x1={`${start.x}%`} y1={`${start.y}%`}
+                x2={`${end.x}%`} y2={`${end.y}%`}
+                stroke="rgba(34, 197, 94, 0.2)"
+                strokeWidth="1"
+                strokeDasharray="4 4"
+                className="animate-[dash_2s_linear_infinite]"
+              />
+            );
+          })}
+        </svg>
+      )}
 
       {/* Tachikomas */}
       {tachikomas.map(t => (
@@ -136,7 +147,7 @@ export const VirtualOffice: React.FC<{ agents: any[], events: any[] }> = ({ agen
       {agents.map(agent => {
         const pos = positions[agent.id] || { x: 50, y: 50 };
         const meta = AGENT_DATA[agent.id] || { color: '#ccc', hair: 'bg-zinc-500' };
-        const isSpeaking = events[events.length - 1]?.agent === agent.name;
+        const isSpeaking = speakerId === agent.id;
         const isThinking = agent.status === 'thinking' || agent.status === 'syncing';
         
         return (
