@@ -38,7 +38,8 @@ export async function GET() {
             status: a.status,
             affect: a.affect,
             lastAction: a.last_action,
-            model: a.model
+            model: a.model,
+            soul: a.affect // Using 'affect' column to store Soul/Personality
           })),
           events: events.reverse().map(e => ({
             id: e.id,
@@ -85,13 +86,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true });
     }
 
-    // New logic for updating agent properties
     if (body.type === 'UPDATE_AGENT' && supabase) {
       const { error } = await supabase
         .from('ops_agents')
         .update({
           role: body.role,
-          model: body.model
+          model: body.model,
+          affect: body.soul // Sync Soul to 'affect' column
         })
         .eq('id', body.id);
       if (error) throw error;

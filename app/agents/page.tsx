@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { AppShell } from "../../components/AppShell";
-import { Users, Database, ShieldCheck, ChevronRight, Loader2, Sparkles, UserPlus, X, Save, BrainCircuit } from "lucide-react";
+import { Users, Database, ShieldCheck, ChevronRight, Loader2, Sparkles, UserPlus, X, Save, BrainCircuit, Fingerprint } from "lucide-react";
 
 export default function AgentsPage() {
   const [agents, setAgents] = useState<any[]>([]);
@@ -37,7 +37,8 @@ export default function AgentsPage() {
           type: 'UPDATE_AGENT', 
           id: editingAgent.id,
           role: editingAgent.role,
-          model: editingAgent.model
+          model: editingAgent.model,
+          soul: editingAgent.soul
         })
       });
       
@@ -54,11 +55,11 @@ export default function AgentsPage() {
 
   return (
     <AppShell>
-      <div className="p-6 lg:p-10 bg-paper min-h-screen font-mono">
+      <div className="p-6 lg:p-10 bg-paper min-h-screen font-mono text-black">
         <header className="mb-10 border-b-4 border-black pb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
             <h1 className="text-4xl font-black text-ink-900 pixel-ch-text uppercase tracking-tighter mb-2">Agent 团队配置</h1>
-            <p className="text-sm font-bold text-ink-500 uppercase tracking-widest">管理 Section 9 全员及其灵魂参数。</p>
+            <p className="text-sm font-bold text-ink-500 uppercase tracking-widest">注入灵魂参数，定义每一位 Agent 的 Ghost 核心。</p>
           </div>
         </header>
 
@@ -131,26 +132,41 @@ export default function AgentsPage() {
                 <button onClick={() => setEditingAgent(null)}><X size={20} /></button>
               </div>
               <div className="p-8 space-y-6">
+                <div className="flex gap-4">
+                  <div className="flex-1">
+                    <label className="block text-[10px] font-black uppercase mb-2">Agent Name</label>
+                    <input 
+                      type="text" 
+                      value={editingAgent.name}
+                      className="w-full bg-ink-50 border-2 border-black p-3 font-black text-sm"
+                      disabled
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <label className="block text-[10px] font-black uppercase mb-2">Tactical Role</label>
+                    <input 
+                      type="text" 
+                      value={editingAgent.role}
+                      onChange={(e) => setEditingAgent({...editingAgent, role: e.target.value})}
+                      className="w-full bg-white border-2 border-black p-3 font-bold text-sm outline-none"
+                    />
+                  </div>
+                </div>
+
                 <div>
-                  <label className="block text-[10px] font-black uppercase mb-2">Agent Name / 灵魂代号</label>
-                  <input 
-                    type="text" 
-                    value={editingAgent.name}
-                    className="w-full bg-ink-50 border-2 border-black p-3 font-black text-sm focus:outline-none focus:bg-white"
-                    disabled
+                  <label className="block text-[10px] font-black uppercase mb-2 flex items-center gap-2">
+                    <Fingerprint size={14} className="text-accent" /> Ghost Soul / 性格注入
+                  </label>
+                  <textarea 
+                    value={editingAgent.soul || ""}
+                    onChange={(e) => setEditingAgent({...editingAgent, soul: e.target.value})}
+                    placeholder="例如：冷静、毒舌、喜欢引用古典文学..."
+                    className="w-full bg-white border-2 border-black p-3 font-bold text-sm outline-none min-h-[80px]"
                   />
                 </div>
+
                 <div>
-                  <label className="block text-[10px] font-black uppercase mb-2">Tactical Role / 战术职能</label>
-                  <input 
-                    type="text" 
-                    value={editingAgent.role}
-                    onChange={(e) => setEditingAgent({...editingAgent, role: e.target.value})}
-                    className="w-full bg-white border-2 border-black p-3 font-bold text-sm focus:ring-2 focus:ring-accent outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[10px] font-black uppercase mb-2">Compute Model / 算力模型 (Current Active)</label>
+                  <label className="block text-[10px] font-black uppercase mb-2">Compute Model / 算力模型</label>
                   <select 
                     value={editingAgent.model}
                     onChange={(e) => setEditingAgent({...editingAgent, model: e.target.value})}
@@ -177,7 +193,7 @@ export default function AgentsPage() {
                   className="px-6 py-2 bg-black text-white border-2 border-black text-xs font-black uppercase hover:bg-accent flex items-center gap-2"
                 >
                   {isSaving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />} 
-                  Inject_Parameters
+                  Inject_Ghost_Soul
                 </button>
               </div>
             </div>
