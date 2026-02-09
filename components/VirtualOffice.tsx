@@ -37,39 +37,55 @@ export const VirtualOffice: React.FC<{ agents: any[], events: any[] }> = ({ agen
   const lastEvent = events[events.length - 1];
   const speakerId = agents.find(a => a.name === lastEvent?.agent)?.id;
 
+  // Pre-defined slots for the meeting table (45, 40)
+  const meetingSlots = [
+    { dx: -6, dy: -4 }, { dx: 0, dy: -6 }, { dx: 6, dy: -4 },
+    { dx: -6, dy: 4 }, { dx: 0, dy: 6 }, { dx: 6, dy: 4 }
+  ];
+
   useEffect(() => {
     if (agents.length === 0) return;
     
     setPositions(prev => {
       const next = { ...prev };
-      agents.forEach(agent => {
-        if (!next[agent.id]) {
-            const homeFurn = FURNITURE.find(f => f.id === AGENT_DATA[agent.id]?.home) || FURNITURE[0];
-            next[agent.id] = { x: homeFurn.x, y: homeFurn.y };
-            return;
-        }
+      agents.forEach((agent, index) => {
+        // Initial setup or periodic update
         const isSpeaking = lastEvent && lastEvent.agent === agent.name;
         const isThinking = agent.status === 'thinking' || agent.status === 'syncing';
 
         if (isSpeaking) {
-            next[agent.id] = { x: 45 + (Math.random() * 4 - 2), y: 40 + (Math.random() * 4 - 2) };
+            // Rule: Move to a specific slot around the meeting table
+            const slot = meetingSlots[index % meetingSlots.length];
+            next[agent.id] = { x: 45 + slot.dx, y: 40 + slot.dy };
         } else if (isThinking) {
+            // Rule: Stay at home equipment with a unique offset
             const home = FURNITURE.find(f => f.id === AGENT_DATA[agent.id]?.home);
-            if (home) next[agent.id] = { x: home.x + 2, y: home.y + 2 };
+            if (home) {
+                const offsetX = (index % 2 === 0 ? 4 : -4);
+                const offsetY = (index < 3 ? 4 : -4);
+                next[agent.id] = { x: home.x + offsetX, y: home.y + offsetY };
+            }
         } else {
-            if (Math.random() > 0.8) {
-                const randomFurn = Math.random() > 0.7 ? FURNITURE.find(f => f.id === 'f3') : FURNITURE[Math.floor(Math.random() * FURNITURE.length)];
-                if (randomFurn) next[agent.id] = { x: randomFurn.x + (Math.random() * 6 - 3), y: randomFurn.y + (Math.random() * 6 - 3) };
+            // Rule: Idle/Roaming with unique furniture offsets
+            if (!next[agent.id] || Math.random() > 0.8) {
+                const targetFurn = FURNITURE[index % FURNITURE.length];
+                const offsetX = (index % 2 === 0 ? 5 : -5);
+                const offsetY = (index < 3 ? 5 : -5);
+                next[agent.id] = { x: targetFurn.x + offsetX, y: targetFurn.y + offsetY };
             }
         }
       });
       return next;
     });
 
-    setTachikomas(prev => prev.map(t => {
+    setTachikomas(prev => prev.map((t, i) => {
         if (lastEvent && Math.random() > 0.5) {
             const speakerPos = positions[speakerId || ""];
-            if (speakerPos) return { ...t, x: speakerPos.x + 5, y: speakerPos.y + 5, state: 'Watching!' };
+            if (speakerPos) {
+                // Stay near the speaker but not ON them
+                const offset = i === 0 ? { dx: 8, dy: 8 } : { dx: -8, dy: 8 };
+                return { ...t, x: speakerPos.x + offset.dx, y: speakerPos.y + offset.dy, state: 'Watching!' };
+            }
         }
         return {
             ...t,
