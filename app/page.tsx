@@ -1,12 +1,34 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { AppShell } from "../components/AppShell";
-import { Button } from "../components/Button";
-import { ArrowRight, BookOpen, Brain, Zap, Microscope } from "lucide-react";
+import { ArrowRight, BookOpen, Brain, Zap, Microscope, Loader2 } from "lucide-react";
 
 export default function LandingPage() {
+  const [events, setEvents] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const response = await fetch('/api/storage');
+        const data = await response.json();
+        if (data.events) {
+          // Take the latest 3 real events
+          setEvents(data.events.slice(-3).reverse());
+        }
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchEvents();
+    const interval = setInterval(fetchEvents, 10000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <AppShell>
       <div className="flex flex-col items-center justify-center min-h-[85vh] text-center pt-24 pb-12 bg-grid-pattern relative font-mono text-black">
@@ -78,26 +100,33 @@ export default function LandingPage() {
               <Microscope size={24} className="text-accent" />
               <h2 className="text-lg font-black uppercase tracking-tighter pixel-ch-text">LIVE_FEED.LOG</h2>
             </div>
-            <div className="space-y-4 text-left font-mono text-[10px] font-bold uppercase pixel-ch-text">
-              <div className="flex gap-3 opacity-70">
-                <span className="shrink-0">[05:05]</span>
-                <span className="text-purple-400 pixel-en-text text-xs">@ARAMAKI-01:</span>
-                <span>已下达《炸弹狂魔 (Catch the Bomber)》作战指令。</span>
+            
+            {loading ? (
+              <div className="flex justify-center p-4">
+                <Loader2 className="animate-spin text-accent" />
               </div>
-              <div className="flex gap-3 opacity-70">
-                <span className="shrink-0">[05:08]</span>
-                <span className="text-blue-400 pixel-en-text text-xs">@ISHIKAWA-LOG:</span>
-                <span>正在提取 MewYork 迷局中“非对称博弈”机制与心理战的相关性。</span>
+            ) : (
+              <div className="space-y-4 text-left font-mono text-[10px] font-bold uppercase pixel-ch-text min-h-[100px]">
+                {events.length > 0 ? (
+                  events.map((e) => (
+                    <div key={e.id} className="flex gap-3 animate-in fade-in slide-in-from-left-2 duration-500">
+                      <span className="shrink-0 opacity-70">[{e.timestamp.substring(0,5)}]</span>
+                      <span className="text-accent pixel-en-text text-xs">@{e.agent}:</span>
+                      <span className="truncate">{e.content}</span>
+                    </div>
+                  ))
+                ) : (
+                  <div className="flex gap-3 opacity-70">
+                    <span className="shrink-0">[--:--]</span>
+                    <span className="text-ink-500">SYSTEM:</span>
+                    <span>NO_ACTIVE_Ghost_SIGNALS_DETECTED...</span>
+                  </div>
+                )}
+                <div className="pt-2 animate-pulse text-green-900">
+                  <span>▌ LISTENING_FOR_GHOST_SIGNALS...</span>
+                </div>
               </div>
-              <div className="flex gap-3">
-                <span className="shrink-0">[05:12]</span>
-                <span className="text-orange-400 pixel-en-text text-xs">@TOGUSA-SCRIPT:</span>
-                <span>生化文案同步中：为什么桌游是人类最后的真实社交避难所？</span>
-              </div>
-              <div className="pt-2 animate-pulse text-green-900">
-                <span>▌ LISTENING_FOR_GHOST_SIGNALS...</span>
-              </div>
-            </div>
+            )}
           </div>
         </div>
       </div>
