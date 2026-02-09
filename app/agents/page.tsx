@@ -150,28 +150,32 @@ export default function AgentsPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black uppercase mb-2">Compute Model / 算力模型</label>
+                  <label className="block text-[10px] font-black uppercase mb-2">Compute Model / 算力模型 (2026 Feb Standard)</label>
                   <select 
                     value={editingAgent.model}
                     onChange={(e) => setEditingAgent({...editingAgent, model: e.target.value})}
                     className="w-full bg-white border-2 border-black p-3 font-bold text-sm outline-none cursor-pointer"
                   >
-                    <optgroup label="Google">
-                      <option value="google/gemini-3-flash-preview">Gemini 3 Flash Preview</option>
-                      <option value="google/gemini-2.0-flash-exp">Gemini 2.0 Flash</option>
+                    <optgroup label="OpenAI - 2026 Frontier">
+                      <option value="openai/gpt-5.3-ultra">GPT-5.3 Ultra (Stable)</option>
+                      <option value="openai/gpt-5.2-turbo">GPT-5.2 Turbo</option>
+                      <option value="openai/o1-pro-max">o1 Pro Max</option>
                     </optgroup>
-                    <optgroup label="DeepSeek">
-                      <option value="deepseek/deepseek-chat">DeepSeek V3 (Chat)</option>
-                      <option value="deepseek/deepseek-reasoner">DeepSeek R1 (Reasoner)</option>
+                    <optgroup label="Anthropic - 2026 Frontier">
+                      <option value="anthropic/claude-4.6-opus">Claude 4.6 Opus</option>
+                      <option value="anthropic/claude-4.5-sonnet">Claude 4.5 Sonnet</option>
+                      <option value="anthropic/sonnet-5-preview">Sonnet 5 (Preview)</option>
                     </optgroup>
-                    <optgroup label="OpenAI">
-                      <option value="openai/gpt-4o">GPT-4o</option>
-                      <option value="openai/o1-mini">o1 Mini</option>
-                      <option value="openai/gpt-4o-mini">GPT-4o Mini</option>
+                    <optgroup label="Google - 2026 Frontier">
+                      <option value="google/gemini-3-pro">Gemini 3 Pro (Full)</option>
+                      <option value="google/gemini-3-flash">Gemini 3 Flash</option>
+                      <option value="google/jules-coding-agent">Jules (Coding Specialist)</option>
                     </optgroup>
-                    <optgroup label="Anthropic">
-                      <option value="anthropic/claude-3-5-sonnet">Claude 3.5 Sonnet</option>
-                      <option value="anthropic/claude-3-5-haiku">Claude 3.5 Haiku</option>
+                    <optgroup label="DeepSeek / Grok / Llama">
+                      <option value="deepseek/v4-preview">DeepSeek V4 (Preview)</option>
+                      <option value="deepseek/r1-engram">DeepSeek R1 (Engram Memory)</option>
+                      <option value="x-ai/grok-4.20">Grok 4.20 (Unlimited)</option>
+                      <option value="meta/llama-4-405b">Llama 4 (405B-Dense)</option>
                     </optgroup>
                     <optgroup label="Local (OpenClaw)">
                       <option value="lmstudio/qwen3-coder-next-mlx">Qwen 3 Coder Next (MLX)</option>
