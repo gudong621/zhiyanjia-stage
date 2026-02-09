@@ -179,7 +179,6 @@ export default function AgentsPage() {
                     <option value="google/gemini-3-flash">Gemini 3 Flash</option>
                     <option value="glm/glm-4.7">GLM 4.7</option>
                     <option value="deepseek/deepseek-chat">DeepSeek Chat</option>
-                    <option value="lmstudio/qwen3-coder-next-mlx">Qwen 3 Coder (Local)</option>
                   </select>
                 </div>
               </div>
