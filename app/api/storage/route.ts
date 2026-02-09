@@ -85,6 +85,19 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true });
     }
 
+    // New logic for updating agent properties
+    if (body.type === 'UPDATE_AGENT' && supabase) {
+      const { error } = await supabase
+        .from('ops_agents')
+        .update({
+          role: body.role,
+          model: body.model
+        })
+        .eq('id', body.id);
+      if (error) throw error;
+      return NextResponse.json({ success: true });
+    }
+
     return NextResponse.json({ success: true });
   } catch (error) {
     return NextResponse.json({ error: 'Failed to save data' }, { status: 500 });

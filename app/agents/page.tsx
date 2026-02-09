@@ -27,14 +27,24 @@ export default function AgentsPage() {
   }, []);
 
   const handleSave = async () => {
+    if (!editingAgent) return;
     setIsSaving(true);
     try {
-      // In a real scenario, this would call a PATCH /api/agents/[id]
-      // For now, we'll simulate the update in the global storage logic
-      console.log("Saving agent:", editingAgent);
-      // We'll add a more robust update logic to our API soon
-      setEditingAgent(null);
-      await fetchAgents();
+      const response = await fetch('/api/storage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          type: 'UPDATE_AGENT', 
+          id: editingAgent.id,
+          role: editingAgent.role,
+          model: editingAgent.model
+        })
+      });
+      
+      if (response.ok) {
+        setEditingAgent(null);
+        await fetchAgents();
+      }
     } catch (e) {
       console.error(e);
     } finally {
@@ -81,7 +91,7 @@ export default function AgentsPage() {
                         </div>
                       </div>
                       <button 
-                        onClick={() => setEditingAgent(a)}
+                        onClick={() => setEditingAgent({...a})}
                         className="flex items-center gap-1 text-[10px] font-black bg-black text-white px-3 py-1 hover:bg-accent transition-colors whitespace-nowrap"
                       >
                         EDIT_CORE <ChevronRight size={12} />
@@ -146,7 +156,7 @@ export default function AgentsPage() {
                     onChange={(e) => setEditingAgent({...editingAgent, model: e.target.value})}
                     className="w-full bg-white border-2 border-black p-3 font-bold text-sm outline-none cursor-pointer"
                   >
-                    <option value="google/gemini-2.0-flash-exp">Gemini 2.0 Flash</option>
+                    <option value="google-gemini-cli/gemini-2.0-flash-exp">Gemini 2.0 Flash</option>
                     <option value="deepseek/deepseek-chat">DeepSeek Chat</option>
                     <option value="openai/gpt-4o-mini">GPT-4o Mini</option>
                     <option value="anthropic/claude-3-5-haiku">Claude 3.5 Haiku</option>
