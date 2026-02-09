@@ -150,36 +150,20 @@ export default function AgentsPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black uppercase mb-2">Compute Model / 算力模型 (2026 Feb Standard)</label>
+                  <label className="block text-[10px] font-black uppercase mb-2">Compute Model / 算力模型 (Current Active)</label>
                   <select 
                     value={editingAgent.model}
                     onChange={(e) => setEditingAgent({...editingAgent, model: e.target.value})}
                     className="w-full bg-white border-2 border-black p-3 font-bold text-sm outline-none cursor-pointer"
                   >
-                    <optgroup label="OpenAI - 2026 Frontier">
-                      <option value="openai/gpt-5.3-ultra">GPT-5.3 Ultra (Stable)</option>
-                      <option value="openai/gpt-5.2-turbo">GPT-5.2 Turbo</option>
-                      <option value="openai/o1-pro-max">o1 Pro Max</option>
-                    </optgroup>
-                    <optgroup label="Anthropic - 2026 Frontier">
-                      <option value="anthropic/claude-4.6-opus">Claude 4.6 Opus</option>
-                      <option value="anthropic/claude-4.5-sonnet">Claude 4.5 Sonnet</option>
-                      <option value="anthropic/sonnet-5-preview">Sonnet 5 (Preview)</option>
-                    </optgroup>
-                    <optgroup label="Google - 2026 Frontier">
-                      <option value="google/gemini-3-pro">Gemini 3 Pro (Full)</option>
-                      <option value="google/gemini-3-flash">Gemini 3 Flash</option>
-                      <option value="google/jules-coding-agent">Jules (Coding Specialist)</option>
-                    </optgroup>
-                    <optgroup label="DeepSeek / Grok / Llama">
-                      <option value="deepseek/v4-preview">DeepSeek V4 (Preview)</option>
-                      <option value="deepseek/r1-engram">DeepSeek R1 (Engram Memory)</option>
-                      <option value="x-ai/grok-4.20">Grok 4.20 (Unlimited)</option>
-                      <option value="meta/llama-4-405b">Llama 4 (405B-Dense)</option>
-                    </optgroup>
-                    <optgroup label="Local (OpenClaw)">
-                      <option value="lmstudio/qwen3-coder-next-mlx">Qwen 3 Coder Next (MLX)</option>
-                    </optgroup>
+                    <option value="openai/gpt-5.3-codex">GPT-5.3 Codex</option>
+                    <option value="anthropic/claude-4.6-opus">Claude 4.6 Opus</option>
+                    <option value="anthropic/claude-4.5-sonnet">Claude 4.5 Sonnet</option>
+                    <option value="google/gemini-3-pro">Gemini 3 Pro</option>
+                    <option value="google/gemini-3-flash">Gemini 3 Flash</option>
+                    <option value="glm/glm-4.7">GLM 4.7</option>
+                    <option value="deepseek/deepseek-chat">DeepSeek Chat</option>
+                    <option value="lmstudio/qwen3-coder-next-mlx">Qwen 3 Coder (Local)</option>
                   </select>
                 </div>
               </div>
