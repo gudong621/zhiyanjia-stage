@@ -89,6 +89,7 @@ export default function StagePage() {
   const [isPlaying, setIsPlaying] = useState(true);
   const [data, setData] = useState<any>(null);
   const [inputValue, setInputValue] = useState("");
+  const [syncProgress, setSyncProgress] = useState(65);
 
   const handleSendMission = async () => {
     if (!inputValue.trim()) return;
@@ -98,6 +99,9 @@ export default function StagePage() {
         body: JSON.stringify({ type: 'MISSION', content: inputValue })
       });
       setInputValue("");
+      // Fake extra pulse on mission send
+      setSyncProgress(90);
+      setTimeout(() => setSyncProgress(Math.floor(Math.random() * 15) + 80), 1000);
     } catch (e) {
       console.error("Mission dispatch failed", e);
     }
@@ -109,6 +113,11 @@ export default function StagePage() {
         const response = await fetch('/api/storage');
         const result = await response.json();
         setData(result);
+        
+        // Dynamic Sync Progress simulation based on activity
+        const base = result.events?.length > 0 ? 85 : 65;
+        const jitter = Math.floor(Math.random() * 10);
+        setSyncProgress(base + jitter);
       } catch (error) {
         console.error("Failed to fetch stage data", error);
       }
@@ -166,9 +175,12 @@ export default function StagePage() {
             </button>
           </div>
           <div className="w-full bg-black h-4 border-2 border-black relative overflow-hidden">
-            <div className="absolute inset-0 bg-accent w-[65%] animate-pulse"></div>
-            <div className="absolute inset-0 flex items-center justify-center text-[8px] font-black text-white uppercase tracking-[0.5em]">
-              Synchronizing_Ghost_Data_65%
+            <div 
+              className="absolute inset-0 bg-accent transition-all duration-1000 ease-out" 
+              style={{ width: `${syncProgress}%` }}
+            ></div>
+            <div className="absolute inset-0 flex items-center justify-center text-[8px] font-black text-white uppercase tracking-[0.5em] mix-blend-difference">
+              Synchronizing_Ghost_Data_{syncProgress}%
             </div>
           </div>
         </section>
@@ -183,14 +195,14 @@ export default function StagePage() {
                     {agent.icon}
                   </div>
                   <div className="text-right">
-                    <div className="text-[10px] text-ink-400 font-black uppercase">{agent.model}</div>
+                    <div className="text-[10px] text-ink-400 font-black uppercase">{dynamicAgent.model || agent.model}</div>
                     <div className="text-[10px] font-black px-2 py-0.5 bg-black text-white inline-block mt-1">
                       {(dynamicAgent.status || agent.status).toUpperCase()}
                     </div>
                   </div>
                 </div>
                 <h3 className="text-2xl font-black mb-1 pixel-en-text uppercase leading-none">{dynamicAgent.name || agent.name}</h3>
-                <p className="text-[10px] text-ink-500 font-black mb-4 uppercase">{agent.role}</p>
+                <p className="text-[10px] text-ink-500 font-black mb-4 uppercase">{dynamicAgent.role || agent.role}</p>
                 <div className="bg-ink-50 p-3 border-2 border-black italic min-h-[60px]">
                   <p className="text-sm text-ink-700 leading-snug font-bold">"{dynamicAgent.lastAction || agent.lastAction}"</p>
                 </div>
@@ -236,4 +248,3 @@ export default function StagePage() {
     </AppShell>
   );
 }
-
