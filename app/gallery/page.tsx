@@ -2,27 +2,29 @@
 
 import React, { useEffect, useState } from "react";
 import { AppShell } from "../../components/AppShell";
-import { FileText, Target, Zap, Download, ExternalLink, Archive, Loader2, X, Maximize2 } from "lucide-react";
+import { FileText, Target, Zap, Download, ExternalLink, Archive, Loader2, X, Maximize2, Trash2 } from "lucide-react";
 
 export default function GalleryPage() {
   const [artifacts, setArtifacts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedArtifact, setSelectedArtifact] = useState<any>(null);
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
+
+  const fetchArtifacts = async () => {
+    try {
+      const response = await fetch('/api/storage');
+      const data = await response.json();
+      if (data.missions) {
+        setArtifacts(data.missions);
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchArtifacts = async () => {
-      try {
-        const response = await fetch('/api/storage');
-        const data = await response.json();
-        if (data.missions) {
-          setArtifacts(data.missions);
-        }
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchArtifacts();
   }, []);
 
@@ -35,13 +37,34 @@ export default function GalleryPage() {
     element.click();
   };
 
+  const deleteArtifact = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    if (!window.confirm("确定要永久粉碎这份机密档案吗？")) return;
+    
+    setIsDeleting(id);
+    try {
+      const response = await fetch('/api/storage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'DELETE_ARTIFACT', id })
+      });
+      if (response.ok) {
+        setArtifacts(artifacts.filter(a => a.id !== id));
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsDeleting(null);
+    }
+  };
+
   return (
     <AppShell>
       <div className="p-6 lg:p-10 bg-paper min-h-screen font-mono text-black relative">
         <header className="mb-10 border-b-4 border-black pb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
             <h1 className="text-4xl font-black text-ink-900 pixel-ch-text uppercase tracking-tighter mb-2">成果陈列馆</h1>
-            <p className="text-sm font-bold text-ink-500 uppercase tracking-widest">点击卡片即可全屏预览 Section 9 核心机密档案。</p>
+            <p className="text-sm font-bold text-ink-500 uppercase tracking-widest">点击卡片全屏预览，或点击垃圾桶粉碎无用碎片。</p>
           </div>
           <div className="flex gap-2">
             <div className="px-3 py-1 bg-black text-white text-[10px] font-black uppercase flex items-center gap-2">
@@ -63,7 +86,14 @@ export default function GalleryPage() {
                 onClick={() => setSelectedArtifact(item)}
                 className="bg-white border-4 border-black p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all cursor-pointer group relative"
               >
-                <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button 
+                      onClick={(e) => deleteArtifact(e, item.id)}
+                      className="p-1 bg-white border-2 border-black hover:bg-red-500 hover:text-white transition-colors"
+                      title="粉碎档案"
+                    >
+                      {isDeleting === item.id ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+                    </button>
                     <Maximize2 size={20} className="text-accent" />
                 </div>
                 <div className="flex items-start justify-between mb-6">
@@ -135,11 +165,6 @@ export default function GalleryPage() {
             </div>
           </div>
         )}
-
-        <div className="mt-16 p-8 border-4 border-black border-dotted bg-ink-50 text-center">
-          <h2 className="text-xl font-black pixel-ch-text uppercase mb-2">正在同步新成果...</h2>
-          <p className="text-xs font-bold text-ink-500 uppercase tracking-widest">Section 9 成员正在后台全速作业，更多高价值档案即将解锁。</p>
-        </div>
       </div>
     </AppShell>
   );

@@ -27,7 +27,7 @@ export async function GET() {
     if (supabase) {
       const { data: agents } = await supabase.from('ops_agents').select('*');
       const { data: events } = await supabase.from('ops_events').select('*').order('created_at', { ascending: false }).limit(30);
-      const { data: missions } = await supabase.from('ops_missions').select('*').order('created_at', { ascending: false }).limit(10);
+      const { data: missions } = await supabase.from('ops_missions').select('*').order('created_at', { ascending: false }).limit(20);
       
       if (agents && events) {
         return NextResponse.json({
@@ -76,6 +76,12 @@ export async function POST(request: Request) {
           color: 'text-accent' 
         }
       }]);
+      return NextResponse.json({ success: true });
+    }
+
+    if (body.type === 'DELETE_ARTIFACT' && supabase) {
+      const { error } = await supabase.from('ops_missions').delete().eq('id', body.id);
+      if (error) throw error;
       return NextResponse.json({ success: true });
     }
 
