@@ -18,6 +18,7 @@ export async function GET() {
     if (supabase) {
       const { data: agents } = await supabase.from('ops_agents').select('*');
       const { data: events } = await supabase.from('ops_events').select('*').order('created_at', { ascending: false }).limit(30);
+      const { data: missions } = await supabase.from('ops_missions').select('*').order('created_at', { ascending: false }).limit(10);
       
       if (agents && events) {
         return NextResponse.json({
@@ -36,7 +37,8 @@ export async function GET() {
             agent: e.agent_id.toUpperCase(),
             content: e.content,
             color: e.meta?.color || 'text-green-400'
-          }))
+          })),
+          missions: missions || []
         });
       }
     }
@@ -67,13 +69,6 @@ export async function POST(request: Request) {
       }]);
       return NextResponse.json({ success: true });
     }
-
-    try {
-      const filePath = getStoragePath();
-      const data = JSON.parse(await fs.readFile(filePath, 'utf8'));
-      Object.assign(data, body);
-      await fs.writeFile(filePath, JSON.stringify(data, null, 2));
-    } catch(e) {}
 
     return NextResponse.json({ success: true });
   } catch (error) {
