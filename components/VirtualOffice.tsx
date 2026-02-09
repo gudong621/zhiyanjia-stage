@@ -3,13 +3,13 @@
 import React, { useEffect, useState } from 'react';
 import { UserCheck, Brain, Search, PenTool, Share2, ShieldAlert } from 'lucide-react';
 
-const AGENT_COLORS = {
-  minion: '#9333ea', // Purple
-  sage: '#2563eb',   // Blue
-  scout: '#4b5563',  // Gray
-  quill: '#16a34a',  // Green
-  xalt: '#dc2626',   // Red
-  observer: '#ea580c', // Orange
+const AGENT_DATA: Record<string, any> = {
+  minion: { color: '#9333ea', hair: 'bg-black', accessory: 'glasses', name: 'ARAMAKI' },
+  sage: { color: '#2563eb', hair: 'bg-zinc-400', accessory: 'headset', name: 'ISHIKAWA' },
+  scout: { color: '#4b5563', hair: 'bg-white', accessory: 'buff', name: 'BATOU' },
+  quill: { color: '#16a34a', hair: 'bg-amber-900', accessory: 'tie', name: 'TOGUSA' },
+  xalt: { color: '#dc2626', hair: 'bg-zinc-800', accessory: 'patch', name: 'SAITO' },
+  observer: { color: '#ea580c', hair: 'bg-zinc-900', accessory: 'mask', name: 'BORMA' },
 };
 
 const LOCATIONS = [
@@ -23,10 +23,12 @@ const LOCATIONS = [
 
 export const VirtualOffice: React.FC<{ agents: any[] }> = ({ agents }) => {
   const [positions, setPositions] = useState<Record<string, { x: number, y: number }>>({});
-  const [activeSpeaker, setActiveSpeaker] = useState<string | null>(null);
+  const [tachikomas, setTachikomas] = useState<any[]>([
+    { id: 'tachi-1', x: 20, y: 20, state: 'Curious' },
+    { id: 'tachi-2', x: 70, y: 80, state: 'Oil Time' }
+  ]);
 
   useEffect(() => {
-    // Initial organic placement
     const initialPos: any = {};
     agents.forEach((a, i) => {
       const loc = LOCATIONS[i % LOCATIONS.length];
@@ -34,37 +36,40 @@ export const VirtualOffice: React.FC<{ agents: any[] }> = ({ agents }) => {
     });
     setPositions(initialPos);
 
-    // Organic movement: only move one agent occasionally
     const interval = setInterval(() => {
-      const luckyAgent = agents[Math.floor(Math.random() * agents.length)];
-      if (!luckyAgent) return;
+      // Move one random agent
+      if (agents.length > 0) {
+        const luckyAgent = agents[Math.floor(Math.random() * agents.length)];
+        setPositions(prev => ({
+          ...prev,
+          [luckyAgent.id]: {
+            x: Math.min(90, Math.max(10, prev[luckyAgent.id]?.x + (Math.random() * 30 - 15) || 50)),
+            y: Math.min(85, Math.max(10, prev[luckyAgent.id]?.y + (Math.random() * 30 - 15) || 50))
+          }
+        }));
+      }
 
-      setPositions(prev => ({
-        ...prev,
-        [luckyAgent.id]: {
-          x: Math.min(90, Math.max(10, prev[luckyAgent.id].x + (Math.random() * 20 - 10))),
-          y: Math.min(85, Math.max(10, prev[luckyAgent.id].y + (Math.random() * 20 - 10)))
-        }
-      }));
-    }, 8000); // Much slower movement frequency
+      // Move Tachikomas
+      setTachikomas(prev => prev.map(t => ({
+        ...t,
+        x: Math.min(90, Math.max(5, t.x + (Math.random() * 40 - 20))),
+        y: Math.min(90, Math.max(5, t.y + (Math.random() * 40 - 20))),
+        state: Math.random() > 0.7 ? ['Syncing Ghost', 'Oil Sample', 'Spinning!', 'Hello Commander!'][Math.floor(Math.random()*4)] : t.state
+      })));
+    }, 6000);
 
     return () => clearInterval(interval);
   }, [agents]);
 
   return (
-    <div className="relative w-full h-[500px] bg-ink-950 border-4 border-black overflow-hidden shadow-2xl">
-      {/* Grid Pattern with Glow */}
-      <div className="absolute inset-0 bg-grid-pattern opacity-20"></div>
-      <div className="absolute inset-0 bg-gradient-to-t from-accent/10 to-transparent"></div>
-
-      {/* Top Status Bar */}
-      <div className="absolute top-0 w-full p-2 bg-black/80 border-b-2 border-green-900/50 flex justify-between items-center z-[60]">
+    <div className="relative w-full h-[550px] bg-ink-950 border-4 border-black overflow-hidden shadow-2xl">
+      <div className="absolute inset-0 bg-grid-pattern opacity-10"></div>
+      
+      {/* HUD Header */}
+      <div className="absolute top-0 w-full p-2 bg-black/80 border-b-2 border-green-900/50 flex justify-between items-center z-[60] font-mono">
         <div className="text-[8px] font-black text-green-500 uppercase tracking-widest flex items-center gap-2">
           <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-ping"></span>
-          Section 9 HQ // Sub-Level 04 // Surveillance_Active
-        </div>
-        <div className="text-[8px] font-black text-ink-500">
-          COORD_SYS: STABLE // GHOST_COUNT: {agents.length}
+          Section 9 Tactical Hub // Sub-Level 04 // Surveillance_Active
         </div>
       </div>
 
@@ -72,24 +77,48 @@ export const VirtualOffice: React.FC<{ agents: any[] }> = ({ agents }) => {
       {LOCATIONS.map(loc => (
         <div 
           key={loc.name}
-          className="absolute border border-white/5 p-3 rounded-sm flex flex-col items-center justify-center opacity-30"
+          className="absolute border border-white/5 p-3 rounded-sm flex flex-col items-center justify-center opacity-20"
           style={{ left: `${loc.x}%`, top: `${loc.y}%`, transform: 'translate(-50%, -50%)' }}
         >
-          <div className="w-12 h-12 border border-dashed border-white/10 rounded-full mb-1 animate-pulse"></div>
           <div className="text-[7px] font-bold text-white uppercase">{loc.name}</div>
         </div>
       ))}
 
-      {/* Agents as Tactical Sprites */}
+      {/* Tachikomas! */}
+      {tachikomas.map(t => (
+        <div 
+          key={t.id}
+          className="absolute transition-all duration-[4000ms] ease-in-out z-40 flex flex-col items-center group"
+          style={{ left: `${t.x}%`, top: `${t.y}%`, transform: 'translate(-50%, -50%)' }}
+        >
+          <div className="absolute -top-8 px-2 py-1 bg-blue-500 text-white text-[7px] font-black uppercase opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap border border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+            {t.state}
+          </div>
+          {/* CSS Tachikoma */}
+          <div className="relative w-10 h-10 animate-bounce" style={{ animationDuration: '3s' }}>
+            <div className="w-8 h-6 bg-blue-600 border-2 border-black rounded-full relative shadow-lg">
+                <div className="absolute top-1 left-1 w-2 h-2 bg-white rounded-full border border-black"></div>
+                <div className="absolute top-1 right-1 w-2 h-2 bg-white rounded-full border border-black"></div>
+                <div className="absolute -bottom-1 left-1 w-2 h-2 bg-zinc-800 rounded-full"></div>
+                <div className="absolute -bottom-1 right-1 w-2 h-2 bg-zinc-800 rounded-full"></div>
+            </div>
+            <div className="absolute -right-2 top-1 w-4 h-4 bg-blue-700 border-2 border-black rounded-full"></div>
+          </div>
+          <div className="mt-1 text-[6px] font-black text-blue-400 uppercase tracking-tighter">TACHIKOMA</div>
+        </div>
+      ))}
+
+      {/* Agents */}
       {agents.map(agent => {
         const pos = positions[agent.id] || { x: 50, y: 50 };
+        const meta = AGENT_DATA[agent.id] || { color: '#ccc', hair: 'bg-zinc-500' };
         const isThinking = agent.status === 'thinking' || agent.status === 'syncing';
         
         return (
           <div 
             key={agent.id}
-            className="absolute transition-all duration-[3000ms] ease-in-out flex flex-col items-center group cursor-help"
-            style={{ left: `${pos.x}%`, top: `${pos.y}%`, transform: 'translate(-50%, -50%)', zIndex: 50 }}
+            className="absolute transition-all duration-[3000ms] ease-in-out flex flex-col items-center group cursor-help z-50"
+            style={{ left: `${pos.x}%`, top: `${pos.y}%`, transform: 'translate(-50%, -50%)' }}
           >
             {/* Holographic Speech Bubble */}
             <div className={`absolute -top-16 px-3 py-2 bg-black/90 border border-accent text-[9px] font-bold text-accent min-w-[120px] max-w-[200px] shadow-[0_0_10px_rgba(255,87,34,0.3)] transition-all duration-500 origin-bottom scale-0 group-hover:scale-100 z-[100] ${isThinking ? 'border-dashed animate-pulse' : ''}`}>
@@ -98,48 +127,42 @@ export const VirtualOffice: React.FC<{ agents: any[] }> = ({ agents }) => {
               <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-black border-r border-b border-accent rotate-45"></div>
             </div>
             
-            {/* Tactical Sprite Body */}
+            {/* Custom Pixel Character */}
             <div className="relative">
-                {/* Thinking Aura */}
-                {isThinking && (
-                    <div className="absolute inset-[-10px] bg-accent/20 rounded-full blur-md animate-pulse"></div>
-                )}
-                
-                {/* The "Pixel" Character */}
+                {isThinking && <div className="absolute inset-[-10px] bg-accent/20 rounded-full blur-md animate-pulse"></div>}
                 <div className="relative w-12 h-14 flex flex-col items-center">
-                    {/* Head */}
-                    <div className="w-6 h-6 bg-ink-200 border-2 border-black rounded-sm relative overflow-hidden flex items-center justify-center">
-                        <div className="absolute top-1.5 w-full flex justify-around px-1">
-                            <div className="w-1.5 h-1.5 bg-black animate-pulse"></div>
-                            <div className="w-1.5 h-1.5 bg-black animate-pulse"></div>
+                    {/* Unique Hair/Head for each */}
+                    <div className={`w-6 h-6 bg-ink-200 border-2 border-black rounded-sm relative overflow-hidden`}>
+                        <div className={`absolute top-0 w-full h-2 ${meta.hair}`}></div>
+                        <div className="absolute top-2.5 w-full flex justify-around px-1">
+                            <div className="w-1 h-1 bg-black"></div>
+                            <div className="w-1 h-1 bg-black"></div>
                         </div>
-                        {/* Tactical Visor based on color */}
-                        <div className="absolute top-1 w-full h-2 bg-black/20"></div>
+                        {/* Accessory */}
+                        {meta.accessory === 'glasses' && <div className="absolute top-2.5 w-full h-1 bg-black/40"></div>}
+                        {meta.accessory === 'patch' && <div className="absolute top-2.5 right-1 w-1.5 h-1.5 bg-black"></div>}
                     </div>
-                    {/* Body/Suit */}
-                    <div className={`w-10 h-8 ${AGENT_COLORS[agent.id as keyof typeof AGENT_COLORS] || 'bg-ink-500'} border-2 border-black rounded-t-lg -mt-1 relative shadow-lg`}>
-                        <div className="absolute inset-0 flex items-center justify-center text-white/30">
-                            <span className="text-[10px] font-black">{agent.name.substring(0,1)}</span>
+                    {/* Body */}
+                    <div className={`w-10 h-8 ${meta.color} border-2 border-black rounded-t-lg -mt-1 relative`}>
+                        {meta.accessory === 'tie' && <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1 h-3 bg-red-800"></div>}
+                        <div className="absolute inset-0 flex items-center justify-center text-white/20 text-[8px] font-black uppercase">
+                            {meta.name.substring(0,2)}
                         </div>
                     </div>
-                    {/* Legs (Animation) */}
+                    {/* Legs */}
                     <div className="flex gap-2 -mt-0.5">
-                        <div className="w-3 h-2 bg-black/80 rounded-b-sm animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                        <div className="w-3 h-2 bg-black/80 rounded-b-sm animate-bounce" style={{ animationDelay: '0.3s' }}></div>
+                        <div className="w-3 h-2 bg-black rounded-b-sm animate-bounce"></div>
+                        <div className="w-3 h-2 bg-black rounded-b-sm animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                     </div>
                 </div>
             </div>
             
-            {/* ID Tag */}
             <div className={`mt-2 px-2 py-0.5 border border-black text-[8px] font-black uppercase shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${isThinking ? 'bg-accent text-white' : 'bg-white text-black'}`}>
               {agent.name}
             </div>
           </div>
         );
       })}
-
-      {/* Floor Grid Shadows */}
-      <div className="absolute bottom-0 w-full h-32 bg-gradient-to-t from-black to-transparent pointer-events-none"></div>
     </div>
   );
 };
