@@ -156,10 +156,26 @@ export default function AgentsPage() {
                     onChange={(e) => setEditingAgent({...editingAgent, model: e.target.value})}
                     className="w-full bg-white border-2 border-black p-3 font-bold text-sm outline-none cursor-pointer"
                   >
-                    <option value="google-gemini-cli/gemini-2.0-flash-exp">Gemini 2.0 Flash</option>
-                    <option value="deepseek/deepseek-chat">DeepSeek Chat</option>
-                    <option value="openai/gpt-4o-mini">GPT-4o Mini</option>
-                    <option value="anthropic/claude-3-5-haiku">Claude 3.5 Haiku</option>
+                    <optgroup label="Google">
+                      <option value="google/gemini-3-flash-preview">Gemini 3 Flash Preview</option>
+                      <option value="google/gemini-2.0-flash-exp">Gemini 2.0 Flash</option>
+                    </optgroup>
+                    <optgroup label="DeepSeek">
+                      <option value="deepseek/deepseek-chat">DeepSeek V3 (Chat)</option>
+                      <option value="deepseek/deepseek-reasoner">DeepSeek R1 (Reasoner)</option>
+                    </optgroup>
+                    <optgroup label="OpenAI">
+                      <option value="openai/gpt-4o">GPT-4o</option>
+                      <option value="openai/o1-mini">o1 Mini</option>
+                      <option value="openai/gpt-4o-mini">GPT-4o Mini</option>
+                    </optgroup>
+                    <optgroup label="Anthropic">
+                      <option value="anthropic/claude-3-5-sonnet">Claude 3.5 Sonnet</option>
+                      <option value="anthropic/claude-3-5-haiku">Claude 3.5 Haiku</option>
+                    </optgroup>
+                    <optgroup label="Local (OpenClaw)">
+                      <option value="lmstudio/qwen3-coder-next-mlx">Qwen 3 Coder Next (MLX)</option>
+                    </optgroup>
                   </select>
                 </div>
               </div>
