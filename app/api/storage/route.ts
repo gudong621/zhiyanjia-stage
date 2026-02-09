@@ -12,6 +12,15 @@ const getSupabase = () => {
 
 const getStoragePath = () => path.join(process.cwd(), 'data/storage.json');
 
+const ID_TO_NAME = {
+  "minion": "ARAMAKI-01",
+  "sage": "ISHIKAWA-LOG",
+  "scout": "BATOU-SENSOR",
+  "quill": "TOGUSA-SCRIPT",
+  "xalt": "SAITO-SNIPER",
+  "observer": "BORMA-SHELL"
+};
+
 export async function GET() {
   try {
     const supabase = getSupabase();
@@ -24,7 +33,7 @@ export async function GET() {
         return NextResponse.json({
           agents: agents.map(a => ({
             id: a.id,
-            name: a.name,
+            name: ID_TO_NAME[a.id] || a.name,
             role: a.role,
             status: a.status,
             affect: a.affect,
@@ -34,7 +43,7 @@ export async function GET() {
           events: events.reverse().map(e => ({
             id: e.id,
             timestamp: e.meta?.timestamp || 'unknown',
-            agent: e.agent_id.toUpperCase(),
+            agent: ID_TO_NAME[e.agent_id] || e.agent_id.toUpperCase(),
             content: e.content,
             color: e.meta?.color || 'text-green-400'
           })),
