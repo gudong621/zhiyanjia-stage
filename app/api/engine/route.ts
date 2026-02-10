@@ -26,6 +26,53 @@ const ID_TO_NAME: Record<string, string> = {
   "observer": "BORMA-SHELL"
 };
 
+// 创建自定义 OpenAI 兼容的模型
+function createOpenAICompatibleModel(baseURL: string, model: string, apiKey: string) {
+  return {
+    specification: 'openai' as const,
+    provider: `${baseURL}` as string,
+    modelId: model,
+    settings: {},
+    supportImageUrls: false as const,
+
+    async doGenerate(options: any) {
+      const response = await fetch(`${baseURL}/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model,
+          messages: options.prompt.map((p: any) => ({
+            role: p.role,
+            content: p.content,
+          })),
+          temperature: options?.temperature ?? 0.7,
+          max_tokens: options?.maxTokens ?? 2048,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`API error: ${response.status} - ${error}`);
+      }
+
+      const data = await response.json();
+      const content = data.choices[0]?.message?.content || '';
+
+      return {
+        text: content,
+        usage: {
+          promptTokens: data.usage?.prompt_tokens || 0,
+          completionTokens: data.usage?.completion_tokens || 0,
+        },
+        rawResponse: response,
+      };
+    },
+  };
+}
+
 // 获取 AI 模型
 async function getModel(provider: string, model: string, apiKey?: string) {
   switch (provider) {
@@ -41,30 +88,26 @@ async function getModel(provider: string, model: string, apiKey?: string) {
       const { google } = await import('@ai-sdk/google');
       return google(model);
     }
-    case 'deepseek':
-    case 'zhipu':
+    case 'deepseek': {
+      return createOpenAICompatibleModel(
+        'https://api.deepseek.com/v1',
+        model,
+        apiKey || process.env.DEEPSEEK_API_KEY || ''
+      );
+    }
+    case 'zhipu': {
+      return createOpenAICompatibleModel(
+        'https://open.bigmodel.cn/api/paas/v4',
+        model,
+        apiKey || process.env.ZHIPU_API_KEY || ''
+      );
+    }
     case 'moonshot': {
-      // 对于 OpenAI 兼容的提供商，使用 createOpenAI 并传入 compatibility: 'compatible'
-      const { createOpenAI } = await import('@ai-sdk/openai');
-
-      const configs = {
-        deepseek: { baseURL: 'https://api.deepseek.com' },
-        zhipu: { baseURL: 'https://open.bigmodel.cn/api/paas/v4' },
-        moonshot: { baseURL: 'https://api.moonshot.cn/v1' },
-      };
-
-      const config = configs[provider as keyof typeof configs];
-      if (!config) {
-        throw new Error(`Unknown provider: ${provider}`);
-      }
-
-      const client = createOpenAI({
-        ...config,
-        apiKey: apiKey || process.env[`${provider.toUpperCase()}_API_KEY`],
-        compatibility: 'compatible',
-      });
-
-      return client(model);
+      return createOpenAICompatibleModel(
+        'https://api.moonshot.cn/v1',
+        model,
+        apiKey || process.env.MOONSHOT_API_KEY || ''
+      );
     }
     default:
       // 默认使用 Google Gemini
