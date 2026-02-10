@@ -101,18 +101,29 @@ function createOpenAICompatibleModel(baseURL: string, model: string, apiKey: str
     },
 
     doStream: async function* (options: any) {
-      // 处理 prompt 格式
+      console.log('[DeepSeek Model] doStream options.prompt type:', typeof options.prompt);
+
+      // 处理 prompt 格式（与 doGenerate 相同）
       let messages: any[] = [];
 
       if (typeof options.prompt === 'string') {
         messages = [{ role: 'user', content: options.prompt }];
       } else if (Array.isArray(options.prompt)) {
         messages = options.prompt;
+      } else if (options.prompt && typeof options.prompt === 'object') {
+        if (Array.isArray(options.prompt.messages)) {
+          messages = options.prompt.messages;
+        } else {
+          messages = [{ role: 'user', content: String(options.prompt) }];
+        }
       } else if (options.messages && Array.isArray(options.messages)) {
         messages = options.messages;
       } else {
+        console.error('[DeepSeek Model] doStream Invalid options:', JSON.stringify(options).substring(0, 500));
         throw new Error(`Invalid prompt format: ${JSON.stringify(options)}`);
       }
+
+      console.log('[DeepSeek Model] doStream messages count:', messages.length);
 
       const response = await fetch(`${baseURL}/chat/completions`, {
         method: 'POST',
