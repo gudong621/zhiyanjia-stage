@@ -34,19 +34,19 @@ async function getModel(provider: string, model: string, apiKey?: string) {
       const client = createOpenAI({
         apiKey: apiKey || process.env.OPENAI_API_KEY,
       });
-      return client(model);
+      return client(model) as any;
     }
     case 'anthropic': {
       const { createAnthropic } = await import('@ai-sdk/anthropic');
       const client = createAnthropic({
         apiKey: apiKey || process.env.ANTHROPIC_API_KEY,
       });
-      return client(model);
+      return client(model) as any;
     }
     case 'google': {
       const { google } = await import('@ai-sdk/google');
       // Google SDK 使用环境变量，不支持自定义 apiKey
-      return google(model);
+      return google(model) as any;
     }
     case 'deepseek': {
       const { createOpenAI } = await import('@ai-sdk/openai');
@@ -54,7 +54,7 @@ async function getModel(provider: string, model: string, apiKey?: string) {
         baseURL: 'https://api.deepseek.com',
         apiKey: apiKey || process.env.DEEPSEEK_API_KEY,
       });
-      return client(model);
+      return client(model) as any;
     }
     case 'zhipu': {
       const { createOpenAI } = await import('@ai-sdk/openai');
@@ -62,7 +62,7 @@ async function getModel(provider: string, model: string, apiKey?: string) {
         baseURL: 'https://open.bigmodel.cn/api/paas/v4/',
         apiKey: apiKey || process.env.ZHIPU_API_KEY,
       });
-      return client(model);
+      return client(model) as any;
     }
     case 'moonshot': {
       const { createOpenAI } = await import('@ai-sdk/openai');
@@ -70,12 +70,12 @@ async function getModel(provider: string, model: string, apiKey?: string) {
         baseURL: 'https://api.moonshot.cn/v1',
         apiKey: apiKey || process.env.MOONSHOT_API_KEY,
       });
-      return client(model);
+      return client(model) as any;
     }
     default:
       // 默认使用 Google Gemini（已有配置）
       const { google } = await import('@ai-sdk/google');
-      return google('gemini-3-flash');
+      return google('gemini-3-flash') as any;
   }
 }
 
