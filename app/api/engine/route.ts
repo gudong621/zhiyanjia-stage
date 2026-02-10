@@ -30,52 +30,46 @@ const ID_TO_NAME: Record<string, string> = {
 async function getModel(provider: string, model: string, apiKey?: string) {
   switch (provider) {
     case 'openai': {
-      const { createOpenAI } = await import('@ai-sdk/openai');
-      const client = createOpenAI({
-        apiKey: apiKey || process.env.OPENAI_API_KEY,
-      });
-      return client(model) as any;
+      const { openai } = await import('@ai-sdk/openai');
+      return openai(model, { apiKey: apiKey || process.env.OPENAI_API_KEY });
     }
     case 'anthropic': {
-      const { createAnthropic } = await import('@ai-sdk/anthropic');
-      const client = createAnthropic({
-        apiKey: apiKey || process.env.ANTHROPIC_API_KEY,
-      });
-      return client(model) as any;
+      const { anthropic } = await import('@ai-sdk/anthropic');
+      return anthropic(model, { apiKey: apiKey || process.env.ANTHROPIC_API_KEY });
     }
     case 'google': {
       const { google } = await import('@ai-sdk/google');
       // Google SDK 使用环境变量，不支持自定义 apiKey
-      return google(model) as any;
+      return google(model);
     }
     case 'deepseek': {
       const { createOpenAI } = await import('@ai-sdk/openai');
-      const client = createOpenAI({
-        baseURL: 'https://api.deepseek.com/v1',
+      const deepseek = createOpenAI({
+        baseURL: 'https://api.deepseek.com',
         apiKey: apiKey || process.env.DEEPSEEK_API_KEY,
       });
-      return client(model);
+      return deepseek.chat(model);
     }
     case 'zhipu': {
       const { createOpenAI } = await import('@ai-sdk/openai');
-      const client = createOpenAI({
-        baseURL: 'https://open.bigmodel.cn/api/paas/v4/',
+      const zhipu = createOpenAI({
+        baseURL: 'https://open.bigmodel.cn/api/paas/v4',
         apiKey: apiKey || process.env.ZHIPU_API_KEY,
       });
-      return client(model) as any;
+      return zhipu.chat(model);
     }
     case 'moonshot': {
       const { createOpenAI } = await import('@ai-sdk/openai');
-      const client = createOpenAI({
+      const moonshot = createOpenAI({
         baseURL: 'https://api.moonshot.cn/v1',
         apiKey: apiKey || process.env.MOONSHOT_API_KEY,
       });
-      return client(model) as any;
+      return moonshot.chat(model);
     }
     default:
       // 默认使用 Google Gemini（已有配置）
       const { google } = await import('@ai-sdk/google');
-      return google('gemini-3-flash') as any;
+      return google('gemini-3-flash');
   }
 }
 
