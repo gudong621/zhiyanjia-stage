@@ -30,7 +30,7 @@ const ID_TO_NAME: Record<string, string> = {
 function createOpenAICompatibleModel(baseURL: string, model: string, apiKey: string): any {
   return {
     specification: 'openai',
-    specificationVersion: 'v1',
+    specificationVersion: 'v2' as any,
     provider: baseURL,
     modelId: model,
     settings: {},
