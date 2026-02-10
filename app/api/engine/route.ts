@@ -51,9 +51,10 @@ async function getModel(provider: string, model: string, apiKey?: string) {
     case 'deepseek': {
       const { createOpenAI } = await import('@ai-sdk/openai');
       const client = createOpenAI({
-        baseURL: 'https://api.deepseek.com/v1',
+        baseURL: 'https://api.deepseek.com', // 移除 /v1 路径
         apiKey: apiKey || process.env.DEEPSEEK_API_KEY,
       });
+      // 在最新版 SDK 中，使用默认探测而非手动指定路径或模式
       return client(model) as any;
     }
     case 'zhipu': {
