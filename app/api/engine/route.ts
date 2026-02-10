@@ -27,15 +27,15 @@ const ID_TO_NAME: Record<string, string> = {
 };
 
 // 创建自定义 OpenAI 兼容的模型
-function createOpenAICompatibleModel(baseURL: string, model: string, apiKey: string) {
+function createOpenAICompatibleModel(baseURL: string, model: string, apiKey: string): any {
   return {
-    specification: 'openai' as const,
-    specificationVersion: 'v1' as const,
+    specification: 'openai',
+    specificationVersion: 'v2',
     provider: baseURL,
     modelId: model,
     settings: {},
 
-    supportedUrls: [] as const,
+    supportedUrls: [],
 
     async doGenerate(options: any) {
       const response = await fetch(`${baseURL}/chat/completions`, {
@@ -74,7 +74,6 @@ function createOpenAICompatibleModel(baseURL: string, model: string, apiKey: str
     },
 
     doStream: async function* (options: any) {
-      // 简化版流式响应，不支持
       const response = await fetch(`${baseURL}/chat/completions`, {
         method: 'POST',
         headers: {
@@ -117,7 +116,7 @@ function createOpenAICompatibleModel(baseURL: string, model: string, apiKey: str
                 yield {
                   type: 'text-delta',
                   textDelta: delta,
-                } as any;
+                };
               }
             } catch (e) {
               // Skip invalid JSON
