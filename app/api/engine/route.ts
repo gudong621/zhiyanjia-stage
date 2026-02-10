@@ -41,27 +41,32 @@ function createOpenAICompatibleModel(baseURL: string, model: string, apiKey: str
       // 调试：打印 options 结构
       console.log('[DeepSeek Model] doGenerate options keys:', Object.keys(options || {}));
       console.log('[DeepSeek Model] options.prompt type:', typeof options.prompt);
-      console.log('[DeepSeek Model] options.messages:', options.messages ? 'exists' : 'undefined');
+      console.log('[DeepSeek Model] options.prompt keys:', options.prompt ? Object.keys(options.prompt) : 'no prompt');
 
-      // 处理 prompt 格式 - 可能是字符串或消息数组
+      // 处理 prompt 格式
       let messages: any[] = [];
 
       if (typeof options.prompt === 'string') {
-        // 单个 prompt 字符串，转换为消息格式
-        messages = [
-          { role: 'user', content: options.prompt }
-        ];
+        messages = [{ role: 'user', content: options.prompt }];
       } else if (Array.isArray(options.prompt)) {
-        // 已经是消息数组
         messages = options.prompt;
+      } else if (options.prompt && typeof options.prompt === 'object') {
+        // prompt 是对象，可能是 AI SDK v3 的新格式
+        // 检查是否有 messages 属性
+        if (Array.isArray(options.prompt.messages)) {
+          messages = options.prompt.messages;
+        } else {
+          // 尝试将 prompt 本身作为单条消息
+          messages = [{ role: 'user', content: String(options.prompt) }];
+        }
       } else if (options.messages && Array.isArray(options.messages)) {
-        // 使用 messages 字段
         messages = options.messages;
       } else {
-        // 打印完整 options 帮助调试
         console.error('[DeepSeek Model] Invalid options structure:', JSON.stringify(options).substring(0, 500));
         throw new Error(`Invalid prompt format: ${JSON.stringify(options)}`);
       }
+
+      console.log('[DeepSeek Model] Final messages count:', messages.length);
 
       const response = await fetch(`${baseURL}/chat/completions`, {
         method: 'POST',
