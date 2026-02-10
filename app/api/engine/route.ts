@@ -72,6 +72,31 @@ async function getModel(provider: string, model: string, apiKey?: string) {
   }
 }
 
+// 直接调用 OpenAI 兼容的 API
+async function callOpenAICompatibleAPI(baseURL: string, model: string, apiKey: string, prompt: string): Promise<string> {
+  const response = await fetch(`${baseURL}/chat/completions`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model,
+      messages: [{ role: 'user', content: prompt }],
+      temperature: 0.7,
+      max_tokens: 2048,
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(`API error: ${response.status} - ${error}`);
+  }
+
+  const data = await response.json();
+  return data.choices[0]?.message?.content || '';
+}
+
 // 获取 Agent 响应
 async function getGhostResponse(agentName: string, agentId: string, context: string, missionPrompt: string) {
   const { data: agentData } = await supabase
@@ -94,6 +119,27 @@ async function getGhostResponse(agentName: string, agentId: string, context: str
   }
 
   try {
+    // 对于 OpenAI 兼容的提供商，直接调用 API
+    const openAICompatibleProviders = ['deepseek', 'zhipu', 'moonshot'];
+    if (openAICompatibleProviders.includes(provider)) {
+      const baseURLs: Record<string, string> = {
+        deepseek: 'https://api.deepseek.com/v1',
+        zhipu: 'https://open.bigmodel.cn/api/paas/v4',
+        moonshot: 'https://api.moonshot.cn/v1',
+      };
+
+      const baseURL = baseURLs[provider];
+      const key = apiKey || process.env[`${provider.toUpperCase()}_API_KEY`];
+
+      if (!baseURL || !key) {
+        throw new Error(`Missing baseURL or API key for ${provider}`);
+      }
+
+      const text = await callOpenAICompatibleAPI(baseURL, model, key, prompt);
+      return text.replace(/(指挥官|课长|老板|上级)/g, '大家');
+    }
+
+    // 对于标准提供商，使用 AI SDK
     const aiModel = await getModel(provider, model, apiKey);
     const { text } = await generateText({
       model: aiModel,
