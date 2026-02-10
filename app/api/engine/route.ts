@@ -55,7 +55,7 @@ async function getModel(provider: string, model: string, apiKey?: string) {
         apiKey: apiKey || process.env.DEEPSEEK_API_KEY,
         compatibility: 'compatible',
       });
-      return client(model);
+      return client.chatModel(model);
     }
     case 'zhipu': {
       const { createOpenAI } = await import('@ai-sdk/openai');
