@@ -35,7 +35,7 @@ function createOpenAICompatibleModel(baseURL: string, model: string, apiKey: str
     modelId: model,
     settings: {},
 
-    supportedUrls: [] as const[],
+    supportedUrls: [] as const,
 
     async doGenerate(options: any) {
       const response = await fetch(`${baseURL}/chat/completions`, {
