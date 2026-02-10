@@ -63,13 +63,13 @@ export default function StagePage() {
       <div className="p-6 lg:p-10 bg-paper min-h-screen font-mono text-black">
         <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10 border-b-4 border-black pb-6">
           <div>
-            <div className="flex items-center gap-3 mb-2 text-accent text-xs tracking-widest uppercase font-bold">
-              <span className="flex h-3 w-3 bg-accent animate-pulse"></span>
+            <div className="flex items-center gap-3 mb-2 text-accent text-[10px] sm:text-xs tracking-widest uppercase font-bold">
+              <span className="flex h-2 w-2 sm:h-3 sm:w-3 bg-accent animate-pulse"></span>
               LIVE - SECTION 9 TACTICAL STAGE
             </div>
-            <h1 className="text-4xl font-black text-ink-900 pixel-ch-text uppercase tracking-tighter">实验室控制台</h1>
+            <h1 className="text-2xl sm:text-4xl font-black text-ink-900 pixel-ch-text uppercase tracking-tighter">实验室控制台</h1>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 overflow-x-auto pb-2 sm:pb-0">
             <div className="bg-white border-4 border-black p-1 flex shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
                 <button 
                     onClick={() => setViewViewMode('office')}

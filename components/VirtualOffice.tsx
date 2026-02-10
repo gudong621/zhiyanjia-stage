@@ -97,7 +97,7 @@ export const VirtualOffice: React.FC<{ agents: any[], events: any[] }> = ({ agen
   }, [agents, events]);
 
   return (
-    <div className="relative w-full h-[600px] bg-ink-950 border-4 border-black overflow-hidden shadow-2xl font-mono">
+    <div className="relative w-full h-[450px] sm:h-[600px] bg-ink-950 border-4 border-black overflow-hidden shadow-2xl font-mono">
       <div className="absolute inset-0 bg-grid-pattern opacity-10"></div>
       
       {/* Furniture */}

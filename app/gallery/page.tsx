@@ -63,8 +63,8 @@ export default function GalleryPage() {
       <div className="p-6 lg:p-10 bg-paper min-h-screen font-mono text-black relative">
         <header className="mb-10 border-b-4 border-black pb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
-            <h1 className="text-4xl font-black text-ink-900 pixel-ch-text uppercase tracking-tighter mb-2">成果陈列馆</h1>
-            <p className="text-sm font-bold text-ink-500 uppercase tracking-widest">点击卡片全屏预览，或点击垃圾桶粉碎无用碎片。</p>
+            <h1 className="text-2xl sm:text-4xl font-black text-ink-900 pixel-ch-text uppercase tracking-tighter mb-2">成果陈列馆</h1>
+            <p className="text-[10px] sm:text-sm font-bold text-ink-500 uppercase tracking-widest leading-tight">点击卡片全屏预览，或点击垃圾桶粉碎无用碎片。</p>
           </div>
           <div className="flex gap-2">
             <div className="px-3 py-1 bg-black text-white text-[10px] font-black uppercase flex items-center gap-2">
