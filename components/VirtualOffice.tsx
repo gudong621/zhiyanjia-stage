@@ -79,7 +79,11 @@ export const VirtualOffice: React.FC<{ agents: any[], events: any[] }> = ({ agen
     });
 
     setTachikomas(prev => prev.map((t, i) => {
-        if (lastEvent && Math.random() > 0.5) {
+        const oilBar = FURNITURE.find(f => f.id === 'f3')!;
+        const distToOil = Math.sqrt(Math.pow(t.x - oilBar.x, 2) + Math.pow(t.y - oilBar.y, 2));
+        const nearOil = distToOil < 10;
+
+        if (lastEvent && Math.random() > 0.5 && !nearOil) {
             const speakerPos = positions[speakerId || ""];
             if (speakerPos) {
                 // Stay near the speaker but not ON them
@@ -87,11 +91,21 @@ export const VirtualOffice: React.FC<{ agents: any[], events: any[] }> = ({ agen
                 return { ...t, x: speakerPos.x + offset.dx, y: speakerPos.y + offset.dy, state: 'Watching!' };
             }
         }
+
+        // Randomly wander towards oil bar or randomly
+        let targetX = t.x + (Math.random() * 20 - 10);
+        let targetY = t.y + (Math.random() * 20 - 10);
+        
+        if (Math.random() > 0.7) {
+            targetX = oilBar.x + (Math.random() * 10 - 5);
+            targetY = oilBar.y + (Math.random() * 10 - 5);
+        }
+
         return {
             ...t,
-            x: Math.min(90, Math.max(5, t.x + (Math.random() * 20 - 10))),
-            y: Math.min(90, Math.max(5, t.y + (Math.random() * 20 - 10))),
-            state: Math.random() > 0.9 ? 'Oil Time!' : t.state
+            x: Math.min(90, Math.max(5, targetX)),
+            y: Math.min(90, Math.max(5, targetY)),
+            state: nearOil ? 'HAPPY! (OIL)' : Math.random() > 0.9 ? 'Oil Time?' : t.state
         };
     }));
   }, [agents, events]);
@@ -100,6 +114,13 @@ export const VirtualOffice: React.FC<{ agents: any[], events: any[] }> = ({ agen
     <div className="relative w-full h-[450px] sm:h-[600px] bg-ink-950 border-4 border-black overflow-hidden shadow-2xl font-mono">
       <div className="absolute inset-0 bg-grid-pattern opacity-10"></div>
       
+      {/* Ghost Glitch Overlay */}
+      {speakerId && (
+        <div className="absolute inset-0 pointer-events-none z-[60] opacity-20 bg-gradient-to-t from-green-500/10 via-transparent to-green-500/10 animate-pulse">
+            <div className="absolute top-0 left-0 w-full h-1 bg-green-500/30 animate-[scan_4s_linear_infinite]"></div>
+        </div>
+      )}
+
       {/* Furniture */}
       {FURNITURE.map(item => (
         <div 
@@ -146,15 +167,29 @@ export const VirtualOffice: React.FC<{ agents: any[], events: any[] }> = ({ agen
           className="absolute transition-all duration-[4000ms] ease-in-out z-40 flex flex-col items-center group"
           style={{ left: `${t.x}%`, top: `${t.y}%`, transform: 'translate(-50%, -50%)' }}
         >
-          <div className="absolute -top-10 px-2 py-1 bg-blue-500 text-white text-[7px] font-black uppercase opacity-0 group-hover:opacity-100 transition-all border-2 border-black z-50">
+          <div className={`absolute -top-10 px-2 py-1 ${t.state.includes('OIL') ? 'bg-amber-500' : 'bg-blue-500'} text-white text-[7px] font-black uppercase opacity-0 group-hover:opacity-100 transition-all border-2 border-black z-50`}>
             {t.state}
           </div>
-          <div className="relative w-12 h-10 animate-bounce" style={{ animationDuration: '3s' }}>
-            <div className="w-10 h-8 bg-blue-600 border-2 border-black rounded-full relative overflow-hidden shadow-lg">
-                <div className="absolute top-2 left-2 w-2 h-2 bg-white rounded-full border-2 border-black"></div>
-                <div className="absolute top-2 right-2 w-2 h-2 bg-white rounded-full border-2 border-black"></div>
+          <div className="relative w-12 h-10 animate-bounce" style={{ animationDuration: t.state.includes('OIL') ? '1s' : '3s' }}>
+            {/* Legs */}
+            <div className="absolute -bottom-1 -left-1 w-3 h-3 bg-zinc-800 border-2 border-black rounded-full"></div>
+            <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-zinc-800 border-2 border-black rounded-full"></div>
+            
+            {/* Main Body */}
+            <div className={`w-10 h-8 ${t.state.includes('OIL') ? 'bg-blue-400' : 'bg-blue-600'} border-2 border-black rounded-full relative overflow-hidden shadow-lg`}>
+                <div className="absolute top-2 left-2 w-2 h-2 bg-white rounded-full border-2 border-black">
+                   <div className="w-1 h-1 bg-black rounded-full m-auto mt-0.5"></div>
+                </div>
+                <div className="absolute top-2 right-2 w-2 h-2 bg-white rounded-full border-2 border-black">
+                   <div className="w-1 h-1 bg-black rounded-full m-auto mt-0.5"></div>
+                </div>
+                {t.state.includes('OIL') && <div className="absolute bottom-1 left-1/2 -translate-x-1/2 text-[8px]">✨</div>}
             </div>
-            <div className="absolute -right-1 top-0 w-5 h-5 bg-blue-700 border-2 border-black rounded-full -z-10"></div>
+            
+            {/* Pod */}
+            <div className="absolute -right-1 top-0 w-6 h-6 bg-blue-700 border-2 border-black rounded-full -z-10 flex items-center justify-center">
+                <div className="w-2 h-2 bg-white/20 rounded-full"></div>
+            </div>
           </div>
         </div>
       ))}
