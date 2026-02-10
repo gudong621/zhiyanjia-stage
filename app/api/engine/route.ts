@@ -51,9 +51,8 @@ async function getModel(provider: string, model: string, apiKey?: string) {
     case 'deepseek': {
       const { createOpenAI } = await import('@ai-sdk/openai');
       const client = createOpenAI({
-        baseURL: 'https://api.deepseek.com',
+        baseURL: 'https://api.deepseek.com/v1',
         apiKey: apiKey || process.env.DEEPSEEK_API_KEY,
-        compatibility: 'strict',
       });
       return client(model);
     }
