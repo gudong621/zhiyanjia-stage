@@ -68,6 +68,8 @@ function createOpenAICompatibleModel(baseURL: string, model: string, apiKey: str
 
       console.log('[DeepSeek Model] Final messages count:', messages.length);
 
+      console.log('[DeepSeek Model] Calling API:', `${baseURL}/chat/completions`);
+
       const response = await fetch(`${baseURL}/chat/completions`, {
         method: 'POST',
         headers: {
@@ -81,6 +83,8 @@ function createOpenAICompatibleModel(baseURL: string, model: string, apiKey: str
           max_tokens: options?.maxTokens ?? 2048,
         }),
       });
+
+      console.log('[DeepSeek Model] API Response status:', response.status);
 
       if (!response.ok) {
         const error = await response.text();
