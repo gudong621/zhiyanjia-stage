@@ -53,9 +53,9 @@ async function getModel(provider: string, model: string, apiKey?: string) {
       const client = createOpenAI({
         baseURL: 'https://api.deepseek.com/v1',
         apiKey: apiKey || process.env.DEEPSEEK_API_KEY,
-        compatibility: 'strict', // 强制严格模式，禁用自动版本探测
+        compatibility: 'compatible',
       });
-      return client(model) as any;
+      return client.chatModel(model) as any;
     }
     case 'zhipu': {
       const { createOpenAI } = await import('@ai-sdk/openai');
