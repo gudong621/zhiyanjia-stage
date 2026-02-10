@@ -51,9 +51,9 @@ async function getModel(provider: string, model: string, apiKey?: string) {
     case 'deepseek': {
       const { createOpenAI } = await import('@ai-sdk/openai');
       const client = createOpenAI({
-        baseURL: 'https://api.deepseek.com/v1', // 加上 /v1 路径更标准
+        baseURL: 'https://api.deepseek.com',
         apiKey: apiKey || process.env.DEEPSEEK_API_KEY,
-        compatibility: 'compatible', // 启用兼容模式，绕过 v2 检查
+        compatibility: 'compatible', // 绕过 v2 严格检查
       });
       return client(model) as any;
     }
@@ -62,6 +62,7 @@ async function getModel(provider: string, model: string, apiKey?: string) {
       const client = createOpenAI({
         baseURL: 'https://open.bigmodel.cn/api/paas/v4/',
         apiKey: apiKey || process.env.ZHIPU_API_KEY,
+        compatibility: 'compatible', 
       });
       return client(model) as any;
     }
@@ -70,6 +71,7 @@ async function getModel(provider: string, model: string, apiKey?: string) {
       const client = createOpenAI({
         baseURL: 'https://api.moonshot.cn/v1',
         apiKey: apiKey || process.env.MOONSHOT_API_KEY,
+        compatibility: 'compatible',
       });
       return client(model) as any;
     }
