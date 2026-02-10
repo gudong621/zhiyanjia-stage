@@ -41,29 +41,30 @@ async function getModel(provider: string, model: string, apiKey?: string) {
       const { google } = await import('@ai-sdk/google');
       return google(model);
     }
-    case 'deepseek': {
-      const { createOpenAI } = await import('@ai-sdk/openai');
-      const deepseek = createOpenAI({
-        baseURL: 'https://api.deepseek.com',
-        apiKey: apiKey || process.env.DEEPSEEK_API_KEY,
-      });
-      return deepseek(model);
-    }
-    case 'zhipu': {
-      const { createOpenAI } = await import('@ai-sdk/openai');
-      const zhipu = createOpenAI({
-        baseURL: 'https://open.bigmodel.cn/api/paas/v4',
-        apiKey: apiKey || process.env.ZHIPU_API_KEY,
-      });
-      return zhipu(model);
-    }
+    case 'deepseek':
+    case 'zhipu':
     case 'moonshot': {
+      // 对于 OpenAI 兼容的提供商，使用 createOpenAI 并传入 compatibility: 'compatible'
       const { createOpenAI } = await import('@ai-sdk/openai');
-      const moonshot = createOpenAI({
-        baseURL: 'https://api.moonshot.cn/v1',
-        apiKey: apiKey || process.env.MOONSHOT_API_KEY,
+
+      const configs = {
+        deepseek: { baseURL: 'https://api.deepseek.com' },
+        zhipu: { baseURL: 'https://open.bigmodel.cn/api/paas/v4' },
+        moonshot: { baseURL: 'https://api.moonshot.cn/v1' },
+      };
+
+      const config = configs[provider as keyof typeof configs];
+      if (!config) {
+        throw new Error(`Unknown provider: ${provider}`);
+      }
+
+      const client = createOpenAI({
+        ...config,
+        apiKey: apiKey || process.env[`${provider.toUpperCase()}_API_KEY`],
+        compatibility: 'compatible',
       });
-      return moonshot(model);
+
+      return client(model);
     }
     default:
       // 默认使用 Google Gemini
