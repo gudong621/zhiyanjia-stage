@@ -87,13 +87,18 @@ export async function POST(request: Request) {
     }
 
     if (body.type === 'UPDATE_AGENT' && supabase) {
+      const updateData: any = {
+        role: body.role,
+        model: body.model,
+        affect: body.soul, // Sync Soul to 'affect' column
+      };
+      // 只有当 provider 或 api_key 有值时才更新
+      if (body.provider !== undefined) updateData.provider = body.provider;
+      if (body.api_key !== undefined) updateData.api_key = body.api_key;
+
       const { error } = await supabase
         .from('ops_agents')
-        .update({
-          role: body.role,
-          model: body.model,
-          affect: body.soul // Sync Soul to 'affect' column
-        })
+        .update(updateData)
         .eq('id', body.id);
       if (error) throw error;
       return NextResponse.json({ success: true });
