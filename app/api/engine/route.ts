@@ -53,6 +53,7 @@ async function getModel(provider: string, model: string, apiKey?: string) {
       const client = createOpenAI({
         baseURL: 'https://api.deepseek.com',
         apiKey: apiKey || process.env.DEEPSEEK_API_KEY,
+        compatibility: 'strict',
       });
       return client(model);
     }
