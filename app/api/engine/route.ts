@@ -30,7 +30,7 @@ const ID_TO_NAME: Record<string, string> = {
 function createOpenAICompatibleModel(baseURL: string, model: string, apiKey: string): any {
   return {
     specification: 'openai',
-    specificationVersion: 'v2',
+    specificationVersion: 'v1',
     provider: baseURL,
     modelId: model,
     settings: {},
@@ -38,6 +38,24 @@ function createOpenAICompatibleModel(baseURL: string, model: string, apiKey: str
     supportedUrls: [],
 
     async doGenerate(options: any) {
+      // 处理 prompt 格式 - 可能是字符串或消息数组
+      let messages: any[] = [];
+
+      if (typeof options.prompt === 'string') {
+        // 单个 prompt 字符串，转换为消息格式
+        messages = [
+          { role: 'user', content: options.prompt }
+        ];
+      } else if (Array.isArray(options.prompt)) {
+        // 已经是消息数组
+        messages = options.prompt;
+      } else if (options.messages && Array.isArray(options.messages)) {
+        // 使用 messages 字段
+        messages = options.messages;
+      } else {
+        throw new Error(`Invalid prompt format: ${JSON.stringify(options)}`);
+      }
+
       const response = await fetch(`${baseURL}/chat/completions`, {
         method: 'POST',
         headers: {
@@ -46,10 +64,7 @@ function createOpenAICompatibleModel(baseURL: string, model: string, apiKey: str
         },
         body: JSON.stringify({
           model,
-          messages: options.prompt.map((p: any) => ({
-            role: p.role,
-            content: p.content,
-          })),
+          messages,
           temperature: options?.temperature ?? 0.7,
           max_tokens: options?.maxTokens ?? 2048,
         }),
@@ -74,6 +89,19 @@ function createOpenAICompatibleModel(baseURL: string, model: string, apiKey: str
     },
 
     doStream: async function* (options: any) {
+      // 处理 prompt 格式
+      let messages: any[] = [];
+
+      if (typeof options.prompt === 'string') {
+        messages = [{ role: 'user', content: options.prompt }];
+      } else if (Array.isArray(options.prompt)) {
+        messages = options.prompt;
+      } else if (options.messages && Array.isArray(options.messages)) {
+        messages = options.messages;
+      } else {
+        throw new Error(`Invalid prompt format: ${JSON.stringify(options)}`);
+      }
+
       const response = await fetch(`${baseURL}/chat/completions`, {
         method: 'POST',
         headers: {
@@ -82,10 +110,7 @@ function createOpenAICompatibleModel(baseURL: string, model: string, apiKey: str
         },
         body: JSON.stringify({
           model,
-          messages: options.prompt.map((p: any) => ({
-            role: p.role,
-            content: p.content,
-          })),
+          messages,
           stream: true,
         }),
       });
