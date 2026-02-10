@@ -31,15 +31,14 @@ async function getModel(provider: string, model: string, apiKey?: string) {
   switch (provider) {
     case 'openai': {
       const { openai } = await import('@ai-sdk/openai');
-      return openai(model, { apiKey: apiKey || process.env.OPENAI_API_KEY });
+      return openai(model);
     }
     case 'anthropic': {
       const { anthropic } = await import('@ai-sdk/anthropic');
-      return anthropic(model, { apiKey: apiKey || process.env.ANTHROPIC_API_KEY });
+      return anthropic(model);
     }
     case 'google': {
       const { google } = await import('@ai-sdk/google');
-      // Google SDK 使用环境变量，不支持自定义 apiKey
       return google(model);
     }
     case 'deepseek': {
@@ -48,7 +47,7 @@ async function getModel(provider: string, model: string, apiKey?: string) {
         baseURL: 'https://api.deepseek.com',
         apiKey: apiKey || process.env.DEEPSEEK_API_KEY,
       });
-      return deepseek.chat(model);
+      return deepseek(model);
     }
     case 'zhipu': {
       const { createOpenAI } = await import('@ai-sdk/openai');
@@ -56,7 +55,7 @@ async function getModel(provider: string, model: string, apiKey?: string) {
         baseURL: 'https://open.bigmodel.cn/api/paas/v4',
         apiKey: apiKey || process.env.ZHIPU_API_KEY,
       });
-      return zhipu.chat(model);
+      return zhipu(model);
     }
     case 'moonshot': {
       const { createOpenAI } = await import('@ai-sdk/openai');
@@ -64,10 +63,10 @@ async function getModel(provider: string, model: string, apiKey?: string) {
         baseURL: 'https://api.moonshot.cn/v1',
         apiKey: apiKey || process.env.MOONSHOT_API_KEY,
       });
-      return moonshot.chat(model);
+      return moonshot(model);
     }
     default:
-      // 默认使用 Google Gemini（已有配置）
+      // 默认使用 Google Gemini
       const { google } = await import('@ai-sdk/google');
       return google('gemini-3-flash');
   }
