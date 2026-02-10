@@ -26,160 +26,6 @@ const ID_TO_NAME: Record<string, string> = {
   "observer": "BORMA-SHELL"
 };
 
-// 创建自定义 OpenAI 兼容的模型
-function createOpenAICompatibleModel(baseURL: string, model: string, apiKey: string): any {
-  return {
-    specification: 'openai',
-    specificationVersion: 'v2' as any,
-    provider: baseURL,
-    modelId: model,
-    settings: {},
-
-    supportedUrls: [],
-
-    async doGenerate(options: any) {
-      // 调试：打印 options 结构
-      console.log('[DeepSeek Model] doGenerate options keys:', Object.keys(options || {}));
-      console.log('[DeepSeek Model] options.prompt type:', typeof options.prompt);
-      console.log('[DeepSeek Model] options.prompt keys:', options.prompt ? Object.keys(options.prompt) : 'no prompt');
-
-      // 处理 prompt 格式
-      let messages: any[] = [];
-
-      if (typeof options.prompt === 'string') {
-        messages = [{ role: 'user', content: options.prompt }];
-      } else if (Array.isArray(options.prompt)) {
-        messages = options.prompt;
-      } else if (options.prompt && typeof options.prompt === 'object') {
-        // prompt 是对象，可能是 AI SDK v3 的新格式
-        // 检查是否有 messages 属性
-        if (Array.isArray(options.prompt.messages)) {
-          messages = options.prompt.messages;
-        } else {
-          // 尝试将 prompt 本身作为单条消息
-          messages = [{ role: 'user', content: String(options.prompt) }];
-        }
-      } else if (options.messages && Array.isArray(options.messages)) {
-        messages = options.messages;
-      } else {
-        console.error('[DeepSeek Model] Invalid options structure:', JSON.stringify(options).substring(0, 500));
-        throw new Error(`Invalid prompt format: ${JSON.stringify(options)}`);
-      }
-
-      console.log('[DeepSeek Model] Final messages count:', messages.length);
-
-      console.log('[DeepSeek Model] Calling API:', `${baseURL}/chat/completions`);
-
-      const response = await fetch(`${baseURL}/chat/completions`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          model,
-          messages,
-          temperature: options?.temperature ?? 0.7,
-          max_tokens: options?.maxTokens ?? 2048,
-        }),
-      });
-
-      console.log('[DeepSeek Model] API Response status:', response.status);
-
-      if (!response.ok) {
-        const error = await response.text();
-        throw new Error(`API error: ${response.status} - ${error}`);
-      }
-
-      const data = await response.json();
-      const content = data.choices[0]?.message?.content || '';
-
-      return {
-        text: content,
-        usage: {
-          promptTokens: data.usage?.prompt_tokens || 0,
-          completionTokens: data.usage?.completion_tokens || 0,
-        },
-        rawResponse: response,
-      };
-    },
-
-    doStream: async function* (options: any) {
-      console.log('[DeepSeek Model] doStream options.prompt type:', typeof options.prompt);
-
-      // 处理 prompt 格式（与 doGenerate 相同）
-      let messages: any[] = [];
-
-      if (typeof options.prompt === 'string') {
-        messages = [{ role: 'user', content: options.prompt }];
-      } else if (Array.isArray(options.prompt)) {
-        messages = options.prompt;
-      } else if (options.prompt && typeof options.prompt === 'object') {
-        if (Array.isArray(options.prompt.messages)) {
-          messages = options.prompt.messages;
-        } else {
-          messages = [{ role: 'user', content: String(options.prompt) }];
-        }
-      } else if (options.messages && Array.isArray(options.messages)) {
-        messages = options.messages;
-      } else {
-        console.error('[DeepSeek Model] doStream Invalid options:', JSON.stringify(options).substring(0, 500));
-        throw new Error(`Invalid prompt format: ${JSON.stringify(options)}`);
-      }
-
-      console.log('[DeepSeek Model] doStream messages count:', messages.length);
-
-      const response = await fetch(`${baseURL}/chat/completions`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          model,
-          messages,
-          stream: true,
-        }),
-      });
-
-      if (!response.ok) {
-        const error = await response.text();
-        throw new Error(`API error: ${response.status} - ${error}`);
-      }
-
-      const reader = response.body?.getReader();
-      if (!reader) throw new Error('No response body');
-
-      const decoder = new TextDecoder();
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        const chunk = decoder.decode(value);
-        const lines = chunk.split('\n').filter((line: string) => line.trim() !== '');
-
-        for (const line of lines) {
-          if (line === 'data: [DONE]') continue;
-          if (line.startsWith('data: ')) {
-            try {
-              const data = JSON.parse(line.slice(6));
-              const delta = data.choices[0]?.delta?.content;
-              if (delta) {
-                yield {
-                  type: 'text-delta',
-                  textDelta: delta,
-                };
-              }
-            } catch (e) {
-              // Skip invalid JSON
-            }
-          }
-        }
-      }
-    },
-  };
-}
-
 // 获取 AI 模型
 async function getModel(provider: string, model: string, apiKey?: string) {
   switch (provider) {
@@ -195,26 +41,29 @@ async function getModel(provider: string, model: string, apiKey?: string) {
       const { google } = await import('@ai-sdk/google');
       return google(model);
     }
-    case 'deepseek': {
-      return createOpenAICompatibleModel(
-        'https://api.deepseek.com/v1',
-        model,
-        apiKey || process.env.DEEPSEEK_API_KEY || ''
-      );
-    }
-    case 'zhipu': {
-      return createOpenAICompatibleModel(
-        'https://open.bigmodel.cn/api/paas/v4',
-        model,
-        apiKey || process.env.ZHIPU_API_KEY || ''
-      );
-    }
+    case 'deepseek':
+    case 'zhipu':
     case 'moonshot': {
-      return createOpenAICompatibleModel(
-        'https://api.moonshot.cn/v1',
-        model,
-        apiKey || process.env.MOONSHOT_API_KEY || ''
-      );
+      // 对于 OpenAI 兼容的提供商，使用 createOpenAI 并传入 baseURL
+      const { createOpenAI } = await import('@ai-sdk/openai');
+
+      const configs: Record<string, string> = {
+        deepseek: 'https://api.deepseek.com/v1',
+        zhipu: 'https://open.bigmodel.cn/api/paas/v4',
+        moonshot: 'https://api.moonshot.cn/v1',
+      };
+
+      const baseURL = configs[provider];
+      if (!baseURL) {
+        throw new Error(`Unknown provider: ${provider}`);
+      }
+
+      const client = createOpenAI({
+        baseURL,
+        apiKey: apiKey || process.env[`${provider.toUpperCase()}_API_KEY`],
+      });
+
+      return client(model);
     }
     default:
       // 默认使用 Google Gemini
