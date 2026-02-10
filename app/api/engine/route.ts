@@ -30,16 +30,23 @@ const ID_TO_NAME: Record<string, string> = {
 async function getModel(provider: string, model: string, apiKey?: string) {
   switch (provider) {
     case 'openai': {
-      const { openai } = await import('@ai-sdk/openai');
-      return openai(model, { apiKey: apiKey || process.env.OPENAI_API_KEY });
+      const { createOpenAI } = await import('@ai-sdk/openai');
+      const client = createOpenAI({
+        apiKey: apiKey || process.env.OPENAI_API_KEY,
+      });
+      return client(model);
     }
     case 'anthropic': {
-      const { anthropic } = await import('@ai-sdk/anthropic');
-      return anthropic(model, { apiKey: apiKey || process.env.ANTHROPIC_API_KEY });
+      const { createAnthropic } = await import('@ai-sdk/anthropic');
+      const client = createAnthropic({
+        apiKey: apiKey || process.env.ANTHROPIC_API_KEY,
+      });
+      return client(model);
     }
     case 'google': {
       const { google } = await import('@ai-sdk/google');
-      return google(model, { apiKey: apiKey || process.env.GOOGLE_GENERATIVE_AI_API_KEY });
+      // Google SDK 使用环境变量，不支持自定义 apiKey
+      return google(model);
     }
     case 'deepseek': {
       const { createOpenAI } = await import('@ai-sdk/openai');
