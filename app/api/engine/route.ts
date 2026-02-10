@@ -30,10 +30,12 @@ const ID_TO_NAME: Record<string, string> = {
 function createOpenAICompatibleModel(baseURL: string, model: string, apiKey: string) {
   return {
     specification: 'openai' as const,
-    provider: `${baseURL}` as string,
+    specificationVersion: 'v1' as const,
+    provider: baseURL,
     modelId: model,
     settings: {},
-    supportImageUrls: false as const,
+
+    supportedUrls: [] as const[],
 
     async doGenerate(options: any) {
       const response = await fetch(`${baseURL}/chat/completions`, {
@@ -69,6 +71,60 @@ function createOpenAICompatibleModel(baseURL: string, model: string, apiKey: str
         },
         rawResponse: response,
       };
+    },
+
+    doStream: async function* (options: any) {
+      // 简化版流式响应，不支持
+      const response = await fetch(`${baseURL}/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model,
+          messages: options.prompt.map((p: any) => ({
+            role: p.role,
+            content: p.content,
+          })),
+          stream: true,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`API error: ${response.status} - ${error}`);
+      }
+
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error('No response body');
+
+      const decoder = new TextDecoder();
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value);
+        const lines = chunk.split('\n').filter((line: string) => line.trim() !== '');
+
+        for (const line of lines) {
+          if (line === 'data: [DONE]') continue;
+          if (line.startsWith('data: ')) {
+            try {
+              const data = JSON.parse(line.slice(6));
+              const delta = data.choices[0]?.delta?.content;
+              if (delta) {
+                yield {
+                  type: 'text-delta',
+                  textDelta: delta,
+                } as any;
+              }
+            } catch (e) {
+              // Skip invalid JSON
+            }
+          }
+        }
+      }
     },
   };
 }
