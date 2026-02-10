@@ -246,17 +246,19 @@ async function tick() {
       })
       .eq('id', AGENT_ID_MAP[nextName]);
 
-    // 如果是最后一个 Agent，生成档案
+    // 如果是最后一个 Agent，且存在未归档的任务，则生成档案
     if (nextName === "BORMA-SHELL" && newEvent) {
       const { data: lastMission } = await supabase
         .from('ops_events')
-        .select('content')
+        .select('id, content')
         .eq('kind', 'mission')
         .order('created_at', { ascending: false })
         .limit(1);
 
-      const missionToArchive = lastMission?.[0]?.content || "日常巡逻演练";
-      await generateArtifact(missionToArchive, chatContext, newEvent[0].id);
+      if (lastMission && lastMission.length > 0) {
+        // 只有当任务存在时才生成档案，使用任务 ID (lastMission[0].id) 作为查重标识
+        await generateArtifact(lastMission[0].content, chatContext, lastMission[0].id);
+      }
     }
 
     return { success: true, agent: nextName, response };
