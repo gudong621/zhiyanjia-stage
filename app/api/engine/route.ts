@@ -38,6 +38,11 @@ function createOpenAICompatibleModel(baseURL: string, model: string, apiKey: str
     supportedUrls: [],
 
     async doGenerate(options: any) {
+      // 调试：打印 options 结构
+      console.log('[DeepSeek Model] doGenerate options keys:', Object.keys(options || {}));
+      console.log('[DeepSeek Model] options.prompt type:', typeof options.prompt);
+      console.log('[DeepSeek Model] options.messages:', options.messages ? 'exists' : 'undefined');
+
       // 处理 prompt 格式 - 可能是字符串或消息数组
       let messages: any[] = [];
 
@@ -53,6 +58,8 @@ function createOpenAICompatibleModel(baseURL: string, model: string, apiKey: str
         // 使用 messages 字段
         messages = options.messages;
       } else {
+        // 打印完整 options 帮助调试
+        console.error('[DeepSeek Model] Invalid options structure:', JSON.stringify(options).substring(0, 500));
         throw new Error(`Invalid prompt format: ${JSON.stringify(options)}`);
       }
 
